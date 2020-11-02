@@ -1,49 +1,58 @@
-import cv2
-import numpy as np
-def processImage(image):
-    image = cv2.imread(image)
-    image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2GRAY)
-    return image
+def process_image(imagename,resultname,
+params="--edge-thresh 10 --peak-thresh 5") :
 
-def convolve2D(image, kernel, padding=0, strides=1):
-    # Cross Correlation
-    kernel = np.flipud(np.fliplr(kernel))
+if imagename[-3:]	!= 'pgm':
+# создать pgm-файл
+im = Image.open(imagename).convert('L')
+im.save('tmp.pgm')
+imagename = 'tmp.pgm'
 
-    # Gather Shapes of Kernel + Image + Padding
-    xKernShape = kernel.shape[0]
-    yKernShape = kernel.shape[1]
-    xImgShape = image.shape[0]
-    yImgShape = image.shape[0]
+cmmd = str("sift "+imagename+" --output="+resultname+
+" "+params) os.system(cmmd)
+print 'processed', imagename, 'to', resultname
 
-    # Shape of Output Convolution
-    xOutput = int(((xImgShape - xKernShape + 2 * padding) / strides) + 1)
-    yOutput = int(((yImgShape - yKernShape + 2 * padding) / strides) + 1)
-    output = np.zeros((xOutput, yOutput))
+def read_features_from_file (filename) :
+f = loadtxt (filename)
+return f[:,:4],f[:,4:]	# положения признаков, дескрипторы
 
-    # Apply Equal Padding to All Sides
-    if padding != 0:
-        imagePadded = np.zeros((image.shape[0] + padding*2, image.shape[1] + padding*2))
-        imagePadded[int(padding):int(-1 * padding), int(padding):int(-1 * padding)] = image
-        print(imagePadded)
-    else:
-        imagePadded = image
+def read_features_from_file (filename) :
+#Прочитать признаки и вернуть их в виде матрицы.
+f = loadtxt (filename)
+return f[:,:4],f[:,4:]	# положения признаков, дескрипторы
 
-    # Iterate through image
-    for y in range(image.shape[1]):
-        # Exit Convolution
-        if y > image.shape[1] - yKernShape:
-            break
-        # Only Convolve if y has gone down by the specified Strides
-        if y % strides == 0:
-            for x in range(image.shape[0]):
-                # Go to next row once kernel is out of bounds
-                if x > image.shape[0] - xKernShape:
-                    break
-                try:
-                    # Only Convolve if x has moved by the specified Strides
-                    if x % strides == 0:
-                        output[x, y] = (kernel * imagePadded[x: x + xKernShape, y: y + yKernShape]).sum()
-                except:
-                    break
+def write_features_to_file (filename, Iocs, desc) :
+savetxt (filename, hstack ( (Iocs, desc) ) )
 
-    return output
+def plot_features(im,Iocs,circle=False) :
+def draw_circle(с,г):
+t = arange(0,1.01,.01)*2*pi х = r*cos(t) + с[0] у = r*sin(t) + с[1] plot(х,у,'Ь',linewidth=2)
+imshow(im) if circle:
+for p in Iocs:
+draw_circle(p[:2],p[2])
+else:
+plot(Iocs[:,0],Iocs[:,1],'ob') axis('off')
+
+import sift
+'empire.jpg'
+iml = array(Image.open(imname).convert('L')) sift.process_image(imname,'empire.sift')
+11, dl = sift. read_features_f rom_file ('empire . sift')
+figure () gray ()
+sift.plot_features(iml,11,circle=True) show()
+
+
+def match(descl/desc2) :
+#Для каждого дескриптора в первом изображении найти соответствующий ему во втором изображении. вход: descl (дескрипторы первого изображения), desc2 (дескрипторы второго изображения).
+descl = array([d/linalg.norm(d) for d in descl]) desc2 = array([d/linalg.norm(d) for d in desc2])
+dist_ratio = 0.6 descl_size = descl.shape
+matchscores = zeros((descl_size[0],1),'int')
+desc2t = desc2.T # вычислить транспонированную матрицу
+for i in range(descl_size[0]):
+dotprods = dot(descl[i,:],desc2t) # вектор скалярных
+# произведений
+dotprods = 0.9999*dotprods
+#	вычислить арккосинусы и отсортировать, получив в результате
+#	индекс признаков во втором изображении indx = argsort(arccos(dotprods))
+#	проверить, верно ли, что для ближайшего соседа угол меньше,
+#	чем dist_ratio, умноженное на угол для следующего соседа if arccos(dotprods)[indx[0]] < dist_ratio * arccos(dotprods)[indx[l]]:
+matchscores[i ] = int(indx[0])
+return matchscores
